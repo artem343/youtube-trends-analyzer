@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+youtube_env/
+subs/
+.vscode/
+trash/
