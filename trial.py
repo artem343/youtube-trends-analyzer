@@ -6,6 +6,8 @@ import bs4
 import re
 import glob
 import shutil
+import json
+import xml.dom.minidom as minidom
 
 
 class Video:
@@ -21,18 +23,6 @@ class Video:
 
     def __repr__(self):
         return f"<{self.id} from {self.locale}>"
-
-
-class SubtitleProcessor:
-    """
-    Extracting subtitles from video
-    """
-
-    def __init__(self):
-        pass
-
-    def extract_text_only(self, file):
-        return ""
 
 
 class VideoProcessor:
@@ -54,9 +44,9 @@ class VideoProcessor:
             requests.get(url).content.decode("utf-8", "ignore"), "html.parser"
         )
         hrefs = []
-        code = soup.find(class_="content-region").text
+        code = soup.find(class_="content-region")
         # if region wasn't set for required locale, it means youtube doesn't have this locale
-        if code == self.locale:
+        if (((code is None) and (self.locale == 'US')) or (code.text == self.locale)):
             for a in soup.find_all("a", href=True):
                 if re.search(r"[^com]\/watch", str(a)):
                     hrefs.append(a["href"])
@@ -64,7 +54,14 @@ class VideoProcessor:
         # Return only most important links: some locales have    too many trends
         return hrefs[:n_videos]
 
+    def clear_locale_folder(self):
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+            print(f"Deleted {self.path}")
+
     def download_subs(self, lang="en"):
+        self.clear_locale_folder()
+
         opts = {
             "skip_download": True,
             "writeinfojson": True,
@@ -95,33 +92,62 @@ class VideoProcessor:
         for file in srvs:
             print(f"Moving file {file} to {self.locale}")
             shutil.move(file, dest_dir)
-            jsonfile = f"{file[:-8]}.info.json"
-            shutil.move(jsonfile, dest_dir)
+            json_file = f"{file[:-8]}.info.json"
+            shutil.move(json_file, dest_dir)
         # Remove remaining .json files
         left_jsons = glob.glob("*.info.json")
         for file in left_jsons:
             os.remove(file)
         return 0
 
-    def read_subtitles_into_dict(self):
-
-        path = f"{self.path}\\*.srv1"
-        text_lang = {}
-        for filename in glob.glob(path):
-            processor = SubtitleProcessor()
-            with open(filename, "r") as f:
-                data = f.readlines()
-            # FIXME: edit these two lines
-            text = processor.extract_text_only(data)
-            text_lang[locale] = text
-        return text_lang
+    def read_locale_into_dict(self):
+        """
+        Create a dictionary with all the video data from current locale.
+        """
+        srvs = glob.glob(f"{self.path}\\*.srv1")
+        locale_dicts = []
+        for srv_path in srvs:
+            json_path = f"{srv_path[:-8]}.info.json"
+            with open(srv_path, "r", encoding="utf-8") as srv_f:
+                # parse srv
+                dom = minidom.parse(srv_f)
+                lines = []
+                for node in dom.getElementsByTagName("text"):
+                    lines.append(node.firstChild.nodeValue)
+                text = " ".join(lines)
+                text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
+            with open(json_path, "r") as json_f:
+                # parse json
+                j = json.load(json_f)
+                video_dict = {
+                    "id": j["id"],
+                    "url": j["webpage_url"],
+                    "title": j["title"],
+                    "duration": j["duration"],
+                    "views": j["view_count"],
+                    "likes": j["like_count"],
+                    "dislikes": j["dislike_count"],
+                    "text": text,
+                }
+            locale_dicts.append(video_dict)
+        return locale_dicts
 
 
 if __name__ == "__main__":
     with open("locales.txt", "r") as locfile:
-        locales = locfile.readlines()
-    for locale in locales[:5]:
-        vp = VideoProcessor(locale[:-1])
+        # locales = locfile.readlines()
+        locales = ["US\n", "AQ\n", "PL\n"]
+
+    vp = VideoProcessor("RU")
+    for locale in locales:
+        locale = locale[:-1]
+        vp.set_locale(locale)
         result = vp.download_subs("en")
-        if not result:
-            print(f"Failed to download subtitle for {locale[:-1]}")
+        if result:
+            locale_dict = vp.read_locale_into_dict()
+            with open(f"{vp.path}\\data.json", "w") as outfile:
+                json.dump({locale: locale_dict}, outfile)
+        else:    
+            print(f"Failed to download subtitle for {locale}")
+        
+
