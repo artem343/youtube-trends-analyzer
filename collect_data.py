@@ -31,12 +31,11 @@ class VideoProcessor:
     """
 
     def __init__(self, locale):
-        self.locale = locale
-        self.path = f"subs\\{self.locale}"
+        self.set_locale(locale)
 
     def set_locale(self, locale):
         self.locale = locale
-        self.path = f"subs\\{self.locale}"
+        self.path = f"subs/{locale}"
 
     def get_video_list(self, n_videos=20):
         url = f"https://www.youtube.com/feed/trending?gl={self.locale}&hl=en"
@@ -44,9 +43,17 @@ class VideoProcessor:
             requests.get(url).content.decode("utf-8", "ignore"), "html.parser"
         )
         hrefs = []
+        locale_exists = False
         code = soup.find(class_="content-region")
         # if region wasn't set for required locale, it means youtube doesn't have this locale
-        if (((code is None) and (self.locale == 'US')) or (code.text == self.locale)):
+        try:
+            if code.text == self.locale:
+                locale_exists = True
+            if (code is None) and (self.locale == "US"):
+                locale_exists = True
+        except:
+            pass
+        if locale_exists:
             for a in soup.find_all("a", href=True):
                 if re.search(r"[^com]\/watch", str(a)):
                     hrefs.append(a["href"])
@@ -74,7 +81,10 @@ class VideoProcessor:
         hrefs = self.get_video_list()
         if len(hrefs):
             with youtube_dl.YoutubeDL(opts) as yt:
-                yt.download(hrefs)
+                try:
+                    yt.download(hrefs)
+                except youtube_dl.utils.DownloadError as e:
+                    print(e)
             # TODO: find options how to download subs directly to folder
             self.move_subs(self.locale)
             return 1
@@ -104,7 +114,7 @@ class VideoProcessor:
         """
         Create a dictionary with all the video data from current locale.
         """
-        srvs = glob.glob(f"{self.path}\\*.srv1")
+        srvs = glob.glob(f"{self.path}/*.srv1")
         locale_dicts = []
         for srv_path in srvs:
             json_path = f"{srv_path[:-8]}.info.json"
@@ -112,10 +122,13 @@ class VideoProcessor:
                 # parse srv
                 dom = minidom.parse(srv_f)
                 lines = []
-                for node in dom.getElementsByTagName("text"):
-                    lines.append(node.firstChild.nodeValue)
-                text = " ".join(lines)
-                text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
+                try:
+                    for node in dom.getElementsByTagName("text"):
+                        lines.append(node.firstChild.nodeValue)
+                    text = " ".join(lines)
+                    text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
+                except Exception:
+                    text = "unknown"
             with open(json_path, "r") as json_f:
                 # parse json
                 j = json.load(json_f)
@@ -127,6 +140,7 @@ class VideoProcessor:
                     "views": j["view_count"],
                     "likes": j["like_count"],
                     "dislikes": j["dislike_count"],
+                    "categories": j["categories"],
                     "text": text,
                 }
             locale_dicts.append(video_dict)
@@ -134,9 +148,8 @@ class VideoProcessor:
 
 
 if __name__ == "__main__":
-    with open("locales.txt", "r") as locfile:
-        # locales = locfile.readlines()
-        locales = ["US\n", "AQ\n", "PL\n"]
+    with open("locales2.txt", "r") as locfile:
+        locales = locfile.readlines()
 
     vp = VideoProcessor("RU")
     for locale in locales:
@@ -145,9 +158,7 @@ if __name__ == "__main__":
         result = vp.download_subs("en")
         if result:
             locale_dict = vp.read_locale_into_dict()
-            with open(f"{vp.path}\\data.json", "w") as outfile:
+            with open(f"{vp.path}/data.json", "w") as outfile:
                 json.dump({locale: locale_dict}, outfile)
-        else:    
+        else:
             print(f"Failed to download subtitle for {locale}")
-        
-
