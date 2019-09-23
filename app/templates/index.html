@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
+{% block title %} Test {% endblock %}
+<!-- {% block head %} {{ super() }} {% endblock %} -->
 {% block content %}
-<main role="main" class="container">
-    <p class="lead">Hello!</p>
-</main>
+<div class="container" height="100vh">
+    <iframe src="{{ url_for('map') }}" frameborder="0" style="width: 80vw;height: 80vh;position: relative;">
+    
+    </iframe>
+</div>
 {% endblock %}
