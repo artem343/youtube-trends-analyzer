@@ -4,7 +4,6 @@ import youtube_dl
 import requests
 import bs4
 import re
-import glob
 import shutil
 import json
 import xml.dom.minidom as minidom
@@ -72,10 +71,6 @@ class VideoProcessor:
         opts = {
             "skip_download": True,
             "writeinfojson": True,
-            "subtitlelangs": lang,
-            "writesubtitles": True,
-            "writeautomaticsub": "%(id)s",
-            "subtitlesformat": "srv1",
         }
 
         hrefs = self.get_video_list()
@@ -97,38 +92,32 @@ class VideoProcessor:
         """
         dest_dir = self.path
         os.makedirs(dest_dir, exist_ok=True)
-        srvs = glob.glob("*.srv1")
+        jsons = glob.glob("*.info.json")
         # Move .srv1 and .json files to locale dir
-        for file in srvs:
+        for file in jsons:
             print(f"Moving file {file} to {self.locale}")
             shutil.move(file, dest_dir)
-            json_file = f"{file[:-8]}.info.json"
-            shutil.move(json_file, dest_dir)
         # Remove remaining .json files
-        left_jsons = glob.glob("*.info.json")
-        for file in left_jsons:
-            os.remove(file)
         return 0
 
     def read_locale_into_dict(self):
         """
         Create a dictionary with all the video data from current locale.
         """
-        srvs = glob.glob(f"{self.path}/*.srv1")
+        jsons = glob.glob(f"{self.path}/*.info.json")
         locale_dicts = []
-        for srv_path in srvs:
-            json_path = f"{srv_path[:-8]}.info.json"
-            with open(srv_path, "r", encoding="utf-8") as srv_f:
-                # parse srv
-                dom = minidom.parse(srv_f)
-                lines = []
-                try:
-                    for node in dom.getElementsByTagName("text"):
-                        lines.append(node.firstChild.nodeValue)
-                    text = " ".join(lines)
-                    text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
-                except Exception:
-                    text = "unknown"
+        for json_path in jsons:
+            # with open(srv_path, "r", encoding="utf-8") as srv_f:
+            #     # parse srv
+            #     dom = minidom.parse(srv_f)
+            #     lines = []
+            #     try:
+            #         for node in dom.getElementsByTagName("text"):
+            #             lines.append(node.firstChild.nodeValue)
+            #         text = " ".join(lines)
+            #         text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
+            #     except Exception:
+            #         text = "unknown"
             with open(json_path, "r") as json_f:
                 # parse json
                 j = json.load(json_f)
@@ -140,15 +129,14 @@ class VideoProcessor:
                     "views": j["view_count"],
                     "likes": j["like_count"],
                     "dislikes": j["dislike_count"],
-                    "categories": j["categories"],
-                    "text": text,
+                    "categories": j["categories"]
                 }
             locale_dicts.append(video_dict)
         return locale_dicts
 
 
 if __name__ == "__main__":
-    with open("locales2.txt", "r") as locfile:
+    with open("locales.txt", "r") as locfile:
         locales = locfile.readlines()
 
     vp = VideoProcessor("RU")
@@ -157,8 +145,8 @@ if __name__ == "__main__":
         vp.set_locale(locale)
         result = vp.download_subs("en")
         if result:
-            locale_dict = vp.read_locale_into_dict()
+            locale_dicts = vp.read_locale_into_dict()
             with open(f"{vp.path}/data.json", "w") as outfile:
-                json.dump({locale: locale_dict}, outfile)
+                json.dump({locale: locale_dicts}, outfile)
         else:
             print(f"Failed to download subtitle for {locale}")
