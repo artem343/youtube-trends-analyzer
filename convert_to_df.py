@@ -14,8 +14,8 @@ def create_df_videos():
         try:
             locale_df = create_df_videos_for_locale(locale[:-1])
             df_videos = df_videos.append(locale_df, ignore_index=True)
-        except Exception:
-            print(f"No json for {locale}")
+        except Exception as e:
+            print(f"No json for {locale}. {e}")
 
     # df_videos.to_csv('videos.csv')
     return df_videos
@@ -30,9 +30,10 @@ def create_df_videos_for_locale(locale):
         new_row = {
             "locale": locale,
             "id": video["id"],
-            "text": video["text"],
             "title": video["title"],
             "categories": video["categories"],
+            "likes": video["likes"],
+            "dislikes": video["dislikes"]
         }
         df_video_locale = df_video_locale.append(new_row, ignore_index=True)
 
