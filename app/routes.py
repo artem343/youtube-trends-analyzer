@@ -7,7 +7,12 @@ import os
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template("index.html", title="Home")
+    try:
+        with open('static/status.txt', 'w') as f:
+            status_line = f.read()
+    except Exception as e:
+        status_line = e
+    return render_template("index.html", title="Home", status_line=status_line)
 
 
 @app.route("/map")
