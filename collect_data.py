@@ -134,8 +134,7 @@ class VideoProcessor:
             locale_dicts.append(video_dict)
         return locale_dicts
 
-
-if __name__ == "__main__":
+def collect_data():
     with open("locales.txt", "r") as locfile:
         locales = locfile.readlines()
 
@@ -150,3 +149,6 @@ if __name__ == "__main__":
                 json.dump({locale: locale_dicts}, outfile)
         else:
             print(f"Failed to download subtitle for {locale}")
+
+if __name__ == "__main__":
+    collect_data()
