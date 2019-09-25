@@ -4,12 +4,23 @@ import folium
 import html
 
 
+def get_details(locale):
+    """
+    Create a dataframe for the details.
+    """
+    df = pd.read_csv('videos.csv')
+    df_locale = df[df['locale'] == locale].copy()
+    df_grouped = df_locale.groupby('categories').count().sort_values(by='id', ascending=False)
+    df_locale = df_locale.astype({"likes": int, "dislikes": int})
+    return df_locale, df_grouped
+
+
 def create_popup_table(df, locale):
     """
     Provides html of a table to display inside the tooltip of a country.
     """
     series = df.loc[locale][5:].sort_values(ascending=False)
-    popup_html = f"<b>{df.loc[locale]['name']}</b>"
+    popup_html = f"<b><a target='_parent' href='/details?locale={df.loc[locale]['locale2']}'>{df.loc[locale]['name']}</a></b>"
     popup_html += "<table border=1 cellpadding=\"10\">"
     for index, value in series.items():
         if value > 0:
@@ -59,7 +70,7 @@ def get_folium_map(csv_file="main.csv"):
 
     # folium.Marker([26.80,80.76],popup=html.escape("Hey!")).add_to(m)
 
-    folium.LayerControl(autoZIndex=False, collapsed=False).add_to(m)
+    folium.LayerControl().add_to(m)
     # save map in this line if needed
     return m
 

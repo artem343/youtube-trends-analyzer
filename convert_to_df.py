@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-def create_df_videos():
+def create_df_videos(save=False):
     with open("locales.txt", "r") as locfile:
         locales = locfile.readlines()
 
@@ -15,9 +15,10 @@ def create_df_videos():
             locale_df = create_df_videos_for_locale(locale[:-1])
             df_videos = df_videos.append(locale_df, ignore_index=True)
         except Exception as e:
-            print(f"No json for {locale}. {e}")
-
-    # df_videos.to_csv('videos.csv')
+            print(f"{e}")
+    
+    if save:
+        df_videos.to_csv('videos.csv')
     return df_videos
 
 
@@ -31,7 +32,7 @@ def create_df_videos_for_locale(locale):
             "locale": locale,
             "id": video["id"],
             "title": video["title"],
-            "categories": video["categories"],
+            "categories": video["categories"][0],
             "likes": video["likes"],
             "dislikes": video["dislikes"]
         }
@@ -46,7 +47,6 @@ def create_df_for_plotting(save=True):
     """
     df_videos = create_df_videos()
     df = df_videos
-    df["categories"] = df["categories"].apply(lambda x: x[0])
 
     df_unstacked = (
         df.groupby(["locale", "categories"])["id"]
@@ -78,4 +78,5 @@ def create_df_for_plotting(save=True):
 
 
 if __name__ == "__main__":
-    df = create_df_for_plotting(save=True)
+    df = create_df_videos(save=True)
+    # df = create_df_for_plotting(save=True)
