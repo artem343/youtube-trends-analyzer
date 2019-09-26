@@ -69,8 +69,10 @@ class VideoProcessor:
         self.clear_locale_folder()
 
         opts = {
+            "sleep_interval": 3,
+            "max_sleep_interval": 5,
             "skip_download": True,
-            "writeinfojson": True,
+            "writeinfojson": True
         }
 
         hrefs = self.get_video_list()
