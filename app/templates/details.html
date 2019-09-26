@@ -11,7 +11,7 @@
     </tr>
     {% for idx, row in df_locale[df_locale['categories'] == category].iterrows() %}
     <tr>
-        <td><div>👍</div>{{ row['likes'] }}</td>
+        <td><div>👍</div>{{ row['likes']  }}</td>
         <td><div>👎</div>{{ row['dislikes'] }}</td>
         <td><a href="https://www.youtube.com/watch?v={{ row['id'] }}">{{ row['title'] }}</a></td>
         {% endfor %}

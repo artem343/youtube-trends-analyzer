@@ -21,11 +21,11 @@ def create_popup_table(df, locale):
     """
     series = df.loc[locale][5:].sort_values(ascending=False)
     popup_html = f"<b><a target='_parent' href='/details?locale={df.loc[locale]['locale2']}'>{df.loc[locale]['name']}</a></b>"
-    popup_html += "<table border=1 cellpadding=\"10\">"
+    popup_html += "<table>"
     for index, value in series.items():
         if value > 0:
-            popup_html += f"<tr><td>{index}</td>"
-            popup_html += f"<td>{round(value, 2)}</td></tr>"
+            popup_html += f"<tr><td style='padding: 0.2em; font-size: 1.2em;'>{index}</td>"
+            popup_html += f"<td style='padding: 0.2em; font-size: 1.2em;'>{int(round(value, 2) * 100)}%</td></tr>"
     popup_html = popup_html + "</table>"
     return popup_html
 
