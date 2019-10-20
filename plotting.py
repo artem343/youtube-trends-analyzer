@@ -81,4 +81,4 @@ def save_folium_map(csv_file="main.csv"):
 
 if __name__ == "__main__":
     if save_folium_map():
-        print('Map created successfully.')
+        print('Plotting: Map created successfully.')

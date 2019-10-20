@@ -7,36 +7,24 @@ import re
 import shutil
 import json
 import xml.dom.minidom as minidom
-
-
-class Video:
-    """
-    A single youtube video with URL and metadata.
-    """
-
-    def __init__(self, locale, id, data_json):
-        self.id = id
-        self.locale = locale
-        self.data = data_json
-        self.text = ""
-
-    def __repr__(self):
-        return f"<{self.id} from {self.locale}>"
+import pandas as pd
 
 
 class VideoProcessor:
     """
-
+    Class encompassing video downloading.  
     """
 
     def __init__(self, locale):
         self.set_locale(locale)
 
     def set_locale(self, locale):
+        """ Change current locale and download path. """
         self.locale = locale
         self.path = f"subs/{locale}"
 
-    def get_video_list(self, n_videos=20):
+    def get_video_list(self, n_videos = 20):
+        """ Scrape trending videos page and extract n_videos """
         url = f"https://www.youtube.com/feed/trending?gl={self.locale}&hl=en"
         soup = bs4.BeautifulSoup(
             requests.get(url).content.decode("utf-8", "ignore"), "html.parser"
@@ -46,9 +34,10 @@ class VideoProcessor:
         code = soup.find(class_="content-region")
         # if region wasn't set for required locale, it means youtube doesn't have this locale
         try:
-            if code.text == self.locale:
-                locale_exists = True
-            if (code is None) and (self.locale == "US"):
+            if code is None:
+                if self.locale == "US":
+                    locale_exists = True
+            elif code.text == self.locale:
                 locale_exists = True
         except:
             pass
@@ -57,19 +46,21 @@ class VideoProcessor:
                 if re.search(r"[^com]\/watch", str(a)):
                     hrefs.append(a["href"])
             hrefs = [f"https://www.youtube.com{link}" for link in hrefs[::2]]
-        # Return only most important links: some locales have    too many trends
+        # Return only most important links: some locales have too many trends
         return hrefs[:n_videos]
 
     def clear_locale_folder(self):
+        """ Clear current locale folder to rewrite files. """
         if os.path.exists(self.path):
             shutil.rmtree(self.path)
             print(f"Deleted {self.path}")
 
     def download_subs(self, lang="en"):
+        """ Use youtube_dl library to download subtitles for the videos. """
         self.clear_locale_folder()
 
         opts = {
-            "sleep_interval": 3,
+            "sleep_interval": 3, # to avoid getting blocked
             "max_sleep_interval": 5,
             "skip_download": True,
             "writeinfojson": True
@@ -109,17 +100,6 @@ class VideoProcessor:
         jsons = glob.glob(f"{self.path}/*.info.json")
         locale_dicts = []
         for json_path in jsons:
-            # with open(srv_path, "r", encoding="utf-8") as srv_f:
-            #     # parse srv
-            #     dom = minidom.parse(srv_f)
-            #     lines = []
-            #     try:
-            #         for node in dom.getElementsByTagName("text"):
-            #             lines.append(node.firstChild.nodeValue)
-            #         text = " ".join(lines)
-            #         text = re.sub(r"[^a-zA-Z ]+", "", text).lower()
-            #     except Exception:
-            #         text = "unknown"
             with open(json_path, "r") as json_f:
                 # parse json
                 j = json.load(json_f)
@@ -136,9 +116,10 @@ class VideoProcessor:
             locale_dicts.append(video_dict)
         return locale_dicts
 
+
 def collect_data():
-    with open("locales.txt", "r") as locfile:
-        locales = locfile.readlines()
+    df_locale = pd.read_csv("locales.csv")
+    locales = df_locale["Alpha-2 code"].tolist()
 
     vp = VideoProcessor("RU")
     for locale in locales:
@@ -151,6 +132,7 @@ def collect_data():
                 json.dump({locale: locale_dicts}, outfile)
         else:
             print(f"Failed to download subtitle for {locale}")
+
 
 if __name__ == "__main__":
     collect_data()
