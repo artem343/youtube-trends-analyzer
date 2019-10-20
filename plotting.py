@@ -2,6 +2,7 @@ import pandas as pd
 import convert_to_df
 import folium
 import html
+import pickle
 
 
 def get_details(locale):
@@ -10,7 +11,9 @@ def get_details(locale):
     """
     df = pd.read_csv('videos.csv')
     df_locale = df[df['locale'] == locale].copy()
-    df_grouped = df_locale.groupby('categories').count().sort_values(by='id', ascending=False)
+    df_grouped = df_locale.groupby(
+        'categories').count().sort_values(by='id', ascending=False)
+    df_locale.fillna(0, inplace=True)
     df_locale = df_locale.astype({"likes": int, "dislikes": int})
     return df_locale, df_grouped
 
@@ -30,7 +33,10 @@ def create_popup_table(df, locale):
     return popup_html
 
 
-def get_folium_map(csv_file="main.csv"):
+def save_folium_map(csv_file="main.csv"):
+    """
+    Create a map using the available csv file with country data and save it to file.  
+    """
     state_geo = "world-countries.json"
     df = pd.read_csv(csv_file)
     state_data = df
@@ -68,12 +74,11 @@ def get_folium_map(csv_file="main.csv"):
         icon = folium.features.CustomIcon("circle.png", icon_size=(8, 8))
         folium.Marker(location=[lat, lon], icon=icon, popup=popup).add_to(m)
 
-    # folium.Marker([26.80,80.76],popup=html.escape("Hey!")).add_to(m)
-
     folium.LayerControl().add_to(m)
-    # save map in this line if needed
-    return m
+    m.save('app/templates/map.html')
+    return 1
 
 
 if __name__ == "__main__":
-    map_html = get_folium_map()
+    if save_folium_map():
+        print('Map created successfully.')
