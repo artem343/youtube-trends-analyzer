@@ -18,7 +18,7 @@ sched = BlockingScheduler()
 
 
 @sched.scheduled_job('cron', day_of_week='mon-sun',
-                     hour=16, minute=30, timezone='UTC')
+                     hour=16, minute=45, timezone='UTC')
 def scheduled_job():
     # This job is run every day to grab the data and refresh the DataFrame
     update_data()
