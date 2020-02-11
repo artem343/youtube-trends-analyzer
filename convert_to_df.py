@@ -1,57 +1,14 @@
-import glob
-import os
-import json
 import pandas as pd
-import numpy as np
-
-
-def create_df_videos(save=False):
-    """ Creates the csv file with information about all the videos. """
-    df_locale = pd.read_csv("locales.csv")
-    locales = df_locale["Alpha-2 code"].tolist()
-
-    df_videos = pd.DataFrame()
-    for locale in locales:
-        try:
-            locale_df = create_df_videos_for_locale(locale)
-            df_videos = df_videos.append(locale_df, ignore_index=True)
-        except Exception as e:
-            print(f"{e}")
-
-    if save:
-        df_videos.to_csv('videos.csv')
-    return df_videos
-
-
-def create_df_videos_for_locale(locale):
-    """ Creates the dataframe with video information for one locale. """
-    df_video_locale = pd.DataFrame()
-    with open(f"subs/{locale}/data.json", "r") as f:
-        j = json.load(f)
-
-    for video in j[locale]:
-        new_row = {
-            "locale": locale,
-            "id": video["id"],
-            "title": video["title"],
-            "categories": video["categories"][0],
-            "likes": video["likes"],
-            "dislikes": video["dislikes"]
-        }
-        df_video_locale = df_video_locale.append(new_row, ignore_index=True)
-
-    return df_video_locale
 
 
 def create_df_for_plotting(save=True):
     """
-    Prepares a dataframe for plotting 
+    Prepares a dataframe for plotting.
     """
-    df_videos = create_df_videos()
-    df = df_videos
+    df = pd.read_csv('daily/most_recent.csv')
 
     df_unstacked = (
-        df.groupby(["locale", "categories"])["id"]
+        df.groupby(["locale", "category"])["id"]
         .count()
         .unstack()
         .fillna(0.0)
@@ -80,4 +37,4 @@ def create_df_for_plotting(save=True):
 
 
 if __name__ == "__main__":
-    df = create_df_videos(save=True)
+    create_df_for_plotting()
