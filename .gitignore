@@ -107,3 +107,6 @@ youtube_env/
 subs/
 .vscode/
 trash/
+daily/
+app/templates/map.html
+main.csv
