@@ -3,6 +3,7 @@ import collect_data
 import create_df_for_plotting
 import plotting
 from datetime import datetime
+import os
 
 
 def update_data():
@@ -21,6 +22,8 @@ sched = BlockingScheduler()
                      hour=16, minute=45, timezone='UTC')
 def scheduled_job():
     # This job is run every day to grab the data and refresh the DataFrame
+    if not os.path.exists('/daily'):
+        os.makedirs('/daily')
     update_data()
     with open('status.txt', 'w') as f:
         f.write(f"Data collected on \
