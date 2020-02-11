@@ -1,8 +1,5 @@
 import pandas as pd
-import convert_to_df
 import folium
-import html
-import pickle
 
 
 def get_details(locale):
@@ -23,7 +20,8 @@ def create_popup_table(df, locale):
     Provides html of a table to display inside the tooltip of a country.
     """
     series = df.loc[locale][5:].sort_values(ascending=False)
-    popup_html = f"<b><a target='_parent' href='/details?locale={df.loc[locale]['locale2']}'>{df.loc[locale]['name']}</a></b>"
+    popup_html = f"<b><a target='_parent' href='/details?locale={df.loc[locale]['locale2']}'>"
+    popup_html += f"{df.loc[locale]['name']}</a></b>"
     popup_html += "<table>"
     for index, value in series.items():
         if value > 0:
@@ -35,9 +33,10 @@ def create_popup_table(df, locale):
 
 def save_folium_map(csv_file="main.csv"):
     """
-    Create a map using the available csv file with country data and save it to file.  
+    Create a map using the available csv file
+    with country data and save it to file.
     """
-    state_geo = "world-countries.json"
+    state_geo_file = "world-countries.json"
     df = pd.read_csv(csv_file)
     state_data = df
 
@@ -47,7 +46,7 @@ def save_folium_map(csv_file="main.csv"):
 
     for cur_column in columns:
         chlor = folium.Choropleth(
-            geo_data=state_geo,
+            geo_data=state_geo_file,
             name=cur_column,
             data=state_data,
             columns=["locale3", cur_column],
@@ -56,16 +55,18 @@ def save_folium_map(csv_file="main.csv"):
             fill_opacity=0.7,
             nan_fill_opacity=0.2,
             line_opacity=0.2,
-            #         legend_name=f'{cur_column} %',
+            legend_name=f'%',
             nan_fill_color="grey",
-            highlight=True,
-            overlay=True,
+            bins=[0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 1],
+            highlight=False,
+            overlay=False,
             show=False,
         )
         # Remove legends
-        for key in chlor._children:
-            if key.startswith("color_map"):
-                del chlor._children[key]
+        if not cur_column == columns[0]:
+            for key in chlor._children:
+                if key.startswith("color_map"):
+                    del chlor._children[key]
         chlor.add_to(m)
 
     for lat, lon, locale in zip(df.lat_avg, df.lon_avg, df.index):
@@ -74,8 +75,14 @@ def save_folium_map(csv_file="main.csv"):
         icon = folium.features.CustomIcon("circle.png", icon_size=(8, 8))
         folium.Marker(location=[lat, lon], icon=icon, popup=popup).add_to(m)
 
-    folium.LayerControl().add_to(m)
+    folium.LayerControl(collapsed=False).add_to(m)
     m.save('app/templates/map.html')
+    with open('app/templates/map.html', 'r') as f:
+        text = f.read()
+    text = text.replace('"openstreetmap" : tile_layer',
+                        '// "openstreetmap" : tile_layer', 1)
+    with open('app/templates/map.html', 'w') as f:
+        f.write(text)
     return 1
 
 

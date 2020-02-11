@@ -14,7 +14,7 @@ scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 def get_popular_videos(locale: str, n_videos: int = 20) -> list:
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
-    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+    # os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
     api_service_name = "youtube"
     api_version = "v3"
@@ -61,7 +61,7 @@ def collect_data():
     df = pd.DataFrame()
     df_categories = pd.read_csv("categories.csv")
     locales = select_locales()
-    for locale in locales[:2]:
+    for locale in locales:
         print(f"Processing {locale}...")
         j_videos = get_popular_videos(locale, n_videos=20)
         videos = []

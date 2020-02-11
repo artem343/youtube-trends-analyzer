@@ -1,20 +1,30 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 import collect_data
-import convert_to_df
+import create_df_for_plotting
 import plotting
 from datetime import datetime
+
+
+def update_data():
+    """
+    Download new videos, analyze them and create a map.
+    """
+    collect_data.collect_data()
+    create_df_for_plotting.create_df_for_plotting()
+    plotting.save_folium_map()
+
 
 sched = BlockingScheduler()
 
 
-@sched.scheduled_job('cron', day_of_week='mon-sun', hour=18, minute=55, timezone='EST')
+@sched.scheduled_job('cron', day_of_week='mon-sun',
+                     hour=19, minute=30, timezone='MSK')
 def scheduled_job():
     # This job is run every day to grab the data and refresh the DataFrame
+    update_data()
     with open('status.txt', 'w') as f:
-        f.write(
-            f"Data collected on {datetime.now().strftime('%d.%m.%Y at %H:%M')}")
-    collect_data.collect_data()
-    convert_to_df.create_df_for_plotting()
-    plotting.save_folium_map()
+        f.write(f"Data collected on \
+                {datetime.now().strftime('%d.%m.%Y')}")
+
 
 sched.start()
