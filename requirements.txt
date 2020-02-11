@@ -9,6 +9,7 @@ Flask==1.1.1
 Flask-Bootstrap==3.3.7.1
 Flask-Bootstrap4==4.0.2
 folium==0.10.0
+google-api-python-client==1.7.11
 gunicorn==19.9.0
 idna==2.8
 itsdangerous==1.1.0
