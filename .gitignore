@@ -110,3 +110,7 @@ trash/
 daily/
 app/templates/map.html
 main.csv
+main.csv
+status.txt
+temp.ipynb
+app/templates/map.html

@@ -6,10 +6,10 @@ def get_details(locale):
     """
     Create a dataframe for the details.
     """
-    df = pd.read_csv('videos.csv')
+    df = pd.read_csv('daily/most_recent.csv')
     df_locale = df[df['locale'] == locale].copy()
     df_grouped = df_locale.groupby(
-        'categories').count().sort_values(by='id', ascending=False)
+        'category').count().sort_values(by='views', ascending=False)
     df_locale.fillna(0, inplace=True)
     df_locale = df_locale.astype({"likes": int, "dislikes": int})
     return df_locale, df_grouped
@@ -75,7 +75,7 @@ def save_folium_map(csv_file="main.csv"):
         icon = folium.features.CustomIcon("circle.png", icon_size=(8, 8))
         folium.Marker(location=[lat, lon], icon=icon, popup=popup).add_to(m)
 
-    folium.LayerControl(collapsed=False).add_to(m)
+    folium.LayerControl(collapsed=True).add_to(m)
     m.save('app/templates/map.html')
     with open('app/templates/map.html', 'r') as f:
         text = f.read()
@@ -83,9 +83,9 @@ def save_folium_map(csv_file="main.csv"):
                         '// "openstreetmap" : tile_layer', 1)
     with open('app/templates/map.html', 'w') as f:
         f.write(text)
+    print('Plotting: Map created successfully.')
     return 1
 
 
 if __name__ == "__main__":
-    if save_folium_map():
-        print('Plotting: Map created successfully.')
+    save_folium_map()
