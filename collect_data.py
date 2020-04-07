@@ -18,7 +18,7 @@ def get_popular_videos(locale: str, n_videos: int = 20) -> list:
 
     api_service_name = "youtube"
     api_version = "v3"
-    DEVELOPER_KEY = "AIzaSyBTyEBWte34jgNMt4bltz3vUgmTWkGLUac"
+    DEVELOPER_KEY = os.environ.get('YTA_API_KEY')
 
     # Get credentials and create an API client
     youtube = googleapiclient.discovery.build(api_service_name, api_version,
