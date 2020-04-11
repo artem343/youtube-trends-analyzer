@@ -1,23 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
 <div class="container">
-    <h2>{{ df_locale['locale'][0] }}</h2>
+    <h4>Here is what's been trending in {{ country_name }}:</h4>
     <table class="table">
-    {% for category in df_grouped.index %}
-    <tr>
-        <td colspan="3"><b>{{ category }}</b></td>
-    </tr>
-    {% for idx, row in df_locale[df_locale['category'] == category].iterrows() %}
-    <tr>
-        <td><div>👍</div>{{ row['likes']  }}</td>
-        <td><div>👎</div>{{ row['dislikes'] }}</td>
-        <td><a href="https://www.youtube.com/watch?v={{ row['id'] }}">{{ row['title'] }}</a></td>
+        {% for category in df_grouped.index %}
+        <tr>
+            <td colspan="3"><b>{{ category }}</b></td>
+        </tr>
+        {% for idx, row in df_locale[df_locale['category'] == category].iterrows() %}
+        <tr>
+            <td>
+                <div>👍</div>{{ row['likes']  }}
+            </td>
+            <td>
+                <div>👎</div>{{ row['dislikes'] }}
+            </td>
+            <td><a href="https://www.youtube.com/watch?v={{ row['id'] }}">{{ row['title'] }}</a></td>
+            {% endfor %}
+        </tr>
         {% endfor %}
-    </tr>
-    {% endfor %}
     </table>
 </div>
-
 {% endblock %}

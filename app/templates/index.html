@@ -2,12 +2,26 @@
 
 {% block content %}
 <div class="container" width="100vw" height="100vh">
-    <div style="height:80vh; position:relative;">
-        {% include 'map.html' %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <p id="description">
+                    This map shows what's trending on YouTube recently in various countries. <br />
+                    Click on the layer symbol on the right and choose a category. <br />
+                    You'll see where such videos are popular. <br />
+                    If you click on the small dots, you will see a list of trending videos for this country.
+                </p>
+                <div id="map">
+                    <iframe id="map_frame" width="100%" height="100%" title="Map" src="/get_map">
+                    </iframe>
+                </div>
+                <div id="status-line">
+                    <p>{{ status_line }}</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div style="margin:5px auto; display:table;">
-        <p>{{ status_line }}</p>
-    </div>
+
+
 </div>
 {% endblock %}
-

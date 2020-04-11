@@ -1,0 +1,15 @@
+#description {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+#map {
+    height: 80vh;
+    display: block;
+}
+
+#status-line {
+    margin:5px auto; 
+    display:table;
+} 

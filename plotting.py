@@ -12,7 +12,8 @@ def get_details(locale):
         'category').count().sort_values(by='views', ascending=False)
     df_locale.fillna(0, inplace=True)
     df_locale = df_locale.astype({"likes": int, "dislikes": int})
-    return df_locale, df_grouped
+    country_name = df_locale.iloc[0]['name']
+    return df_locale, df_grouped, country_name
 
 
 def create_popup_table(df, locale):

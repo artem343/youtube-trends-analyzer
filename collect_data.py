@@ -95,6 +95,15 @@ def collect_data():
     df.rename({'title': 'category', 'video_name': 'title', 'id_x': 'id'},
               axis=1, inplace=True)
     df.set_index('id', inplace=True)
+
+    df_locale = pd.read_csv("locales.csv")
+    df_locale.columns = ["name", "locale2",
+                         "locale3", "numcode", "lat_avg", "lon_avg"]
+    df_locale.drop(["locale3", "numcode", "lat_avg",
+                    "lon_avg"], axis=1, inplace=True)
+    df = df.reset_index().merge(df_locale, left_on='locale',
+                                right_on='locale2').set_index('id')
+
     df.to_csv(f'daily/{datetime.date.today()}.csv')
     df.to_csv(f'daily/most_recent.csv')
 
