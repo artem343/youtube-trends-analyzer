@@ -1,6 +1,6 @@
 beautifulsoup4==4.8.0
 Click==7.0
-Flask==1.1.1
+Flask==2.2.5
 Flask-Bootstrap4==4.0.2
 flask_bootstrap
 folium
